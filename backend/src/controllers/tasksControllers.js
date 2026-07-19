@@ -24,7 +24,9 @@ export const getAllTasks = async (req, res) => {
         }
     }
 
-    const query = startDate ? { createdAt: {$gte: startDate}} : {};
+    const query = startDate
+        ? { createdAt: {$gte: startDate}, user: req.user._id }
+        : { user: req.user._id };
 
     try{
         const result = await Task.aggregate([
@@ -51,7 +53,7 @@ export const getAllTasks = async (req, res) => {
 export const createTask = async (req, res) => {
     try{
         const { title } = req.body;
-        const task = new Task({ title });
+        const task = new Task({ title, user: req.user._id });
         const newTask = await task.save();
         res.status(201).json(newTask);
     }catch(error){
@@ -64,7 +66,7 @@ export const updateTask = async (req, res) => {
     try{
         const {title, status, completedAt} = req.body;
         const updatedTask = await Task.findByIdAndUpdate(
-            req.params.id,
+            { _id: req.params.id, user: req.user._id },
             { title, status, completedAt },
             { new: true }
         );
@@ -80,7 +82,7 @@ export const updateTask = async (req, res) => {
 
 export const deleteTask = async (req, res) => {
     try{
-        const deletedTask = await Task.findByIdAndDelete(req.params.id);
+        const deletedTask = await Task.findByIdAndDelete({ _id: req.params.id, user: req.user._id });
         if(!deletedTask) {
             return res.status(404).json({ message: 'Nhiệm vụ không tồn tại' });
         }

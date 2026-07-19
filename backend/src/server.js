@@ -1,5 +1,6 @@
 import express from 'express';
 import tasksRoutes from './routes/tasksRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -21,7 +22,7 @@ if(process.env.NODE_ENV !== "production"){
     app.use(cors({origin: "http://localhost:5173"}));
 }
 
-
+app.use("/api/auth", authRoutes);
 app.use("/api/tasks", tasksRoutes);
 
 if(process.env.NODE_ENV === "production"){
