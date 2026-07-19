@@ -22,6 +22,7 @@ if(process.env.NODE_ENV !== "production"){
     app.use(cors({origin: "http://localhost:5173"}));
 }
 
+
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", tasksRoutes);
 
@@ -40,5 +41,6 @@ connectDB().then(()=>{
     });
 });
 
-
+dotenv.config();
+console.log("NODE_ENV hiện tại là:", process.env.NODE_ENV);
 

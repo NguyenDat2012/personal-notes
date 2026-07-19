@@ -1,4 +1,5 @@
 import Task from '../models/Task.js';
+import { encrypt, decrypt } from '../utils/encryption.js';
 
 export const getAllTasks = async (req, res) => {
     const {filter = 'today'} =req.query;
@@ -39,7 +40,10 @@ export const getAllTasks = async (req, res) => {
                 },
             },
         ]);
-        const tasks = result[0].tasks;
+        const tasks = result[0].tasks.map((task) => ({
+            ...task,
+            title: decrypt(task.title),
+        }));
         const activeCount = result[0].activeCount[0]?.count || 0;
         const completeCount = result[0].completeCount[0]?.count || 0;
 
@@ -53,9 +57,13 @@ export const getAllTasks = async (req, res) => {
 export const createTask = async (req, res) => {
     try{
         const { title } = req.body;
-        const task = new Task({ title, user: req.user._id });
+        const task = new Task({ title: encrypt(title), user: req.user._id });
         const newTask = await task.save();
-        res.status(201).json(newTask);
+
+        const responseTask = newTask.toObject();
+        responseTask.title = decrypt(responseTask.title);
+
+        res.status(201).json(responseTask);
     }catch(error){
         console.error('Lỗi khi tạo task:', error);
         res.status(500).json({ message: 'Lỗi hệ thống' });
@@ -65,15 +73,19 @@ export const createTask = async (req, res) => {
 export const updateTask = async (req, res) => {
     try{
         const {title, status, completedAt} = req.body;
-        const updatedTask = await Task.findByIdAndUpdate(
+        const updatedTask = await Task.findOneAndUpdate(
             { _id: req.params.id, user: req.user._id },
-            { title, status, completedAt },
+            { title: title !== undefined ? encrypt(title) : undefined, status, completedAt },
             { new: true }
         );
         if(!updatedTask) {
             return res.status(404).json({ message: 'Nhiệm vụ không tồn tại' });
         }
-        res.status(200).json(updatedTask);
+
+        const responseTask = updatedTask.toObject();
+        responseTask.title = decrypt(responseTask.title);
+
+        res.status(200).json(responseTask);
     }catch(error){
         console.error('Lỗi khi cập nhật task:', error);
         res.status(500).json({ message: 'Lỗi hệ thống' });
@@ -82,11 +94,15 @@ export const updateTask = async (req, res) => {
 
 export const deleteTask = async (req, res) => {
     try{
-        const deletedTask = await Task.findByIdAndDelete({ _id: req.params.id, user: req.user._id });
+        const deletedTask = await Task.findOneAndDelete({ _id: req.params.id, user: req.user._id });
         if(!deletedTask) {
             return res.status(404).json({ message: 'Nhiệm vụ không tồn tại' });
         }
-        res.status(200).json(deletedTask);
+
+        const responseTask = deletedTask.toObject();
+        responseTask.title = decrypt(responseTask.title);
+
+        res.status(200).json(responseTask);
     }catch(error){
         console.error('Lỗi khi xóa task:', error);
         res.status(500).json({ message: 'Lỗi hệ thống' });

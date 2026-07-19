@@ -136,7 +136,7 @@ export const TaskCard = ({task,index, handleTaskChanged}) =>{
                
 
                 {/*Nút chỉnh và xóa */}
-                <div className="hidden gap-2 group-hover:inline-flex animate-slide-up">
+                <div className="inline-flex gap-2 animate-slide-up sm:hidden sm:group-hover:inline-flex">
                     {/*Nút chỉnh */}
                     <Button
                         variant="ghost"
