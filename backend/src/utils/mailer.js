@@ -9,7 +9,9 @@ const transporter = nodemailer.createTransport({
 
 export const sendDeadlineReminderEmail = async ({ to, userName, taskTitle, deadline }) => {
     const transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_APP_PASSWORD,
