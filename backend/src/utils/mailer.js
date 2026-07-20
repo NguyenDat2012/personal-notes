@@ -1,11 +1,4 @@
 import nodemailer from 'nodemailer';
-
-/**
- * Gửi email qua Gmail bằng "App Password" (KHÔNG phải mật khẩu Gmail thường).
- * Cần 2 biến môi trường:
- *   EMAIL_USER          -> địa chỉ Gmail dùng để gửi (VD: yourapp@gmail.com)
- *   EMAIL_APP_PASSWORD  -> App Password 16 ký tự tạo tại myaccount.google.com/apppasswords
- */
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -16,6 +9,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendDeadlineReminderEmail = async ({ to, userName, taskTitle, deadline }) => {
     const deadlineStr = new Date(deadline).toLocaleString('vi-VN', {
+        timeZone: "Asia/Ho_Chi_Minh",
         dateStyle: 'full',
         timeStyle: 'short',
     });
