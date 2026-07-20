@@ -8,10 +8,18 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendDeadlineReminderEmail = async ({ to, userName, taskTitle, deadline }) => {
-    const deadlineStr = new Date(deadline).toLocaleString('vi-VN', {
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_APP_PASSWORD,
+        },
+    });
+
+    const deadlineStr = new Date(deadline).toLocaleString("vi-VN", {
         timeZone: "Asia/Ho_Chi_Minh",
-        dateStyle: 'full',
-        timeStyle: 'short',
+        dateStyle: "full",
+        timeStyle: "short",
     });
 
     await transporter.sendMail({
