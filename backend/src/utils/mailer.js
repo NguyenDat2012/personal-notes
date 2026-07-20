@@ -41,4 +41,7 @@ export const sendDeadlineReminderEmail = async ({ to, userName, taskTitle, deadl
             </div>
         `,
     });
+
+    await transporter.verify();
+    console.log("SMTP OK");
 };

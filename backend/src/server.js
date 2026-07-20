@@ -6,6 +6,9 @@ import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import path from "path";
+import dns from "node:dns";
+
+dns.setDefaultResultOrder("ipv4first");
 
 dotenv.config();
 
