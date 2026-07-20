@@ -1,6 +1,7 @@
 import express from 'express';
 import tasksRoutes from './routes/tasksRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import reminderRoutes from './routes/reminderRoutes.js';
 import { connectDB } from './config/db.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
@@ -25,6 +26,7 @@ if(process.env.NODE_ENV !== "production"){
 
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", tasksRoutes);
+app.use("/api/cron", reminderRoutes);
 
 if(process.env.NODE_ENV === "production"){
     app.use(express.static(path.join(__dirname,"../frontend/dist")));
@@ -40,7 +42,3 @@ connectDB().then(()=>{
         console.log(`Server is running on port ${PORT}`);
     });
 });
-
-dotenv.config();
-console.log("NODE_ENV hiện tại là:", process.env.NODE_ENV);
-

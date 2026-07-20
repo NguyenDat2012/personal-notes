@@ -2,17 +2,22 @@ import React, { useState } from "react";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Clock } from "lucide-react";
 
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
 export const AddTask = ({handleNewTaskAdded}) =>{
     const [newTaskTitle, setNewTaskTitle] = useState("");
+    const [deadline, setDeadline] = useState("");
+
     const addTask = async () =>{
         if(newTaskTitle.trim()){
             try{
-                await api.post("/tasks", { title: newTaskTitle});
+                await api.post("/tasks", {
+                    title: newTaskTitle,
+                    deadline: deadline ? new Date(deadline).toISOString() : null,
+                });
                 toast.success(`Nhiệm vụ ${newTaskTitle} đã được thêm vào.`);
                 handleNewTaskAdded();
             }catch(error){
@@ -20,6 +25,7 @@ export const AddTask = ({handleNewTaskAdded}) =>{
                 toast.error('Lỗi xảy ra khi thêm nhiệm vụ mới!');
             }
             setNewTaskTitle("");
+            setDeadline("");
         }else{
             toast.error("Bạn cần nhập nội dung của nhiệm vụ.");
         }
@@ -39,6 +45,16 @@ export const AddTask = ({handleNewTaskAdded}) =>{
                     onChange = {(even)=>setNewTaskTitle(even.target.value)}
                     onKeyPress={handleKeyPress}
                 />
+                <div className="relative sm:w-56">
+                    <Clock className="absolute -translate-y-1/2 pointer-events-none left-3 top-1/2 size-4 text-muted-foreground"/>
+                    <Input
+                        type="datetime-local"
+                        title="Hạn chót (tùy chọn) - hệ thống sẽ gửi email nhắc bạn trước 1 ngày"
+                        className="h-12 pl-9 text-base bg-slate-50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
+                        value={deadline}
+                        onChange={(e)=>setDeadline(e.target.value)}
+                    />
+                </div>
                 <Button 
                     variant="gradient"
                     size="xl"

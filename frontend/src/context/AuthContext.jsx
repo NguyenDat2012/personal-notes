@@ -24,15 +24,28 @@ export const AuthProvider = ({ children }) => {
             .finally(() => setLoading(false));
     }, []);
 
-    const login = async (email, password) => {
-        const res = await api.post("/auth/login", { email, password });
+    const login = async (username, password) => {
+        const res = await api.post("/auth/login", { username, password });
         localStorage.setItem("token", res.data.token);
         setUser(res.data);
         return res.data;
     };
 
-    const register = async (name, email, password) => {
-        const res = await api.post("/auth/register", { name, email, password });
+    const register = async (name, username, password) => {
+        const res = await api.post("/auth/register", { name, username, password });
+        localStorage.setItem("token", res.data.token);
+        setUser(res.data);
+        return res.data;
+    };
+
+    /**
+     * Dùng chung cho 2 mục đích:
+     * - Chưa đăng nhập (không có token trong localStorage) -> hoạt động như "Đăng nhập bằng Google"
+     * - Đã đăng nhập sẵn (có token, axios tự đính kèm) -> hoạt động như "Liên kết Google"
+     * Backend tự phân biệt 2 trường hợp này dựa vào có Bearer token hợp lệ hay không.
+     */
+    const continueWithGoogle = async (credential) => {
+        const res = await api.post("/auth/google", { credential });
         localStorage.setItem("token", res.data.token);
         setUser(res.data);
         return res.data;
@@ -44,7 +57,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider
+            value={{ user, loading, login, register, continueWithGoogle, logout }}
+        >
             {children}
         </AuthContext.Provider>
     );

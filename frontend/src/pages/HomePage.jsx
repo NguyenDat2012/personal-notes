@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import  { Header }  from "@/components/Header";
+import { ReminderEmailBanner } from "@/components/ReminderEmailBanner";
 import  { AddTask } from "@/components/AddTask";
 import { StatsAndFilters} from "@/components/StatsAndFilters";
 import  {TaskList}  from "@/components/TaskList";
@@ -93,6 +94,9 @@ const HomePage = () => {
                 <div className="w-full max-w-2xl p-6 mx-auto space-y-6">
                     {/*Đầu trang */}
                     <Header/>
+
+                    {/*Mời liên kết Google nếu chưa có email để nhận nhắc nhở */}
+                    <ReminderEmailBanner/>
 
                     {/*Tạo nhiệm vụ */}
                     <AddTask handleNewTaskAdded={handleTaskChanged}/>

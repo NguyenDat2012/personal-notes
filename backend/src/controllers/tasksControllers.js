@@ -56,8 +56,8 @@ export const getAllTasks = async (req, res) => {
 }
 export const createTask = async (req, res) => {
     try{
-        const { title } = req.body;
-        const task = new Task({ title: encrypt(title), user: req.user._id });
+        const { title, deadline } = req.body;
+        const task = new Task({ title: encrypt(title), user: req.user._id, deadline: deadline || null });
         const newTask = await task.save();
 
         const responseTask = newTask.toObject();
@@ -72,10 +72,20 @@ export const createTask = async (req, res) => {
 
 export const updateTask = async (req, res) => {
     try{
-        const {title, status, completedAt} = req.body;
+        const {title, status, completedAt, deadline} = req.body;
+        const update = {
+            title: title !== undefined ? encrypt(title) : undefined,
+            status,
+            completedAt,
+        };
+        // Nếu deadline thay đổi, reset lại reminderSent để hệ thống có thể gửi nhắc nhở mới
+        if (deadline !== undefined) {
+            update.deadline = deadline;
+            update.reminderSent = false;
+        }
         const updatedTask = await Task.findOneAndUpdate(
             { _id: req.params.id, user: req.user._id },
-            { title: title !== undefined ? encrypt(title) : undefined, status, completedAt },
+            update,
             { new: true }
         );
         if(!updatedTask) {

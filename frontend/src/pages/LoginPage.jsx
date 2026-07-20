@@ -4,24 +4,25 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import GoogleButton from "@/components/GoogleButton";
 import { useAuth } from "@/context/AuthContext";
 
 const LoginPage = () => {
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { login } = useAuth();
+    const { login, continueWithGoogle } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!email || !password) {
+        if (!username || !password) {
             toast.error("Vui lòng nhập đầy đủ thông tin");
             return;
         }
         setIsSubmitting(true);
         try {
-            await login(email, password);
+            await login(username, password);
             toast.success("Đăng nhập thành công!");
             navigate("/");
         } catch (error) {
@@ -29,6 +30,17 @@ const LoginPage = () => {
             toast.error(message);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleGoogleCredential = async (credential) => {
+        try {
+            await continueWithGoogle(credential);
+            toast.success("Đăng nhập bằng Google thành công!");
+            navigate("/");
+        } catch (error) {
+            const message = error?.response?.data?.message || "Đăng nhập Google thất bại";
+            toast.error(message);
         }
     };
 
@@ -51,17 +63,30 @@ const LoginPage = () => {
                         Chào mừng quay lại với Nhiệm Vụ
                     </p>
                 </div>
+
+                <div className="mb-4">
+                    <GoogleButton onCredential={handleGoogleCredential} text="signin_with" />
+                </div>
+                <div className="relative mb-4">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-border/60" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="px-2 bg-white text-muted-foreground">hoặc</span>
+                    </div>
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-1.5">
-                        <label htmlFor="email" className="text-sm font-medium text-foreground">
-                            Email
+                        <label htmlFor="username" className="text-sm font-medium text-foreground">
+                            Tên tài khoản
                         </label>
                         <Input
-                            id="email"
-                            type="email"
-                            placeholder="ban@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            id="username"
+                            type="text"
+                            placeholder="nguyenvana"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             className="h-11"
                         />
                     </div>

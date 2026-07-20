@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { Calendar, CheckCircle2, Circle, SquarePen, Trash2 } from "lucide-react";
+import { Calendar, CheckCircle2, Circle, Clock, SquarePen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
@@ -132,6 +132,25 @@ export const TaskCard = ({task,index, handleTaskChanged}) =>{
                             </>
                         )}
                     </div>
+                    {/*Hạn chót (deadline) */}
+                    {task.deadline && task.status !== 'complete' && (() => {
+                        const deadlineDate = new Date(task.deadline);
+                        const hoursLeft = (deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60);
+                        const isOverdue = hoursLeft < 0;
+                        const isUrgent = hoursLeft >= 0 && hoursLeft <= 24;
+                        return (
+                            <div className={cn(
+                                "mt-1 flex items-center gap-2",
+                                isOverdue ? "text-destructive" : isUrgent ? "text-amber-600" : "text-muted-foreground"
+                            )}>
+                                <Clock className="size-3"/>
+                                <span className="text-xs font-medium">
+                                    {isOverdue ? "Đã trễ hạn: " : "Hạn chót: "}
+                                    {deadlineDate.toLocaleString()}
+                                </span>
+                            </div>
+                        );
+                    })()}
                 </div>
                
 

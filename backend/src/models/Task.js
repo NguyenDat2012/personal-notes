@@ -14,11 +14,19 @@ const taskSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
+    deadline: {
+        type: Date,
+        default: null,
+    },
+    reminderSent: {
+        type: Boolean,
+        default: false,
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
-    }, 
+    },
 },
 {
         timestamps: true, //tự động thêm createdAt và updatedAt
