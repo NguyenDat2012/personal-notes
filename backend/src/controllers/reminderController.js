@@ -2,23 +2,12 @@ import Task from '../models/Task.js';
 import { decrypt } from '../utils/encryption.js';
 import { sendDeadlineReminderEmail } from '../utils/mailer.js';
 
-/**
- * Endpoint này KHÔNG dùng JWT của user (vì được gọi bởi 1 dịch vụ cron bên ngoài,
- * không phải bởi người dùng đăng nhập) -> bảo vệ bằng 1 "secret" riêng (CRON_SECRET),
- * truyền qua query string ?secret=... khi gọi.
- *
- * Quét toàn bộ task (mọi user) có:
- *  - status: 'active'      (chưa hoàn thành)
- *  - reminderSent: false   (chưa từng gửi nhắc nhở)
- *  - deadline trong khoảng [hiện tại, hiện tại + 24 giờ]
- * -> gửi email nhắc nhở tới đúng email của chủ task, rồi đánh dấu reminderSent = true.
- */
 export const sendDeadlineReminders = async (req, res) => {
     const secret = req.query.secret || req.headers['x-cron-secret'];
     if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
         return res.status(401).json({ message: 'Không có quyền truy cập' });
     }
-
+    
     try {
         const now = new Date();
         const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
