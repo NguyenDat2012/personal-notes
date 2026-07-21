@@ -1,21 +1,22 @@
 import nodemailer from 'nodemailer';
 
 
-export const sendDeadlineReminderEmail = async ({ to, userName, taskTitle, deadline }) => {
-    const transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_APP_PASSWORD,
-        },
-    });
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    family: 4, // ÉP dùng IPv4 -> tránh lỗi ENETUNREACH khi Render không hỗ trợ IPv6 outbound
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD,
+    },
+});
 
-    const deadlineStr = new Date(deadline).toLocaleString("vi-VN", {
-        timeZone: "Asia/Ho_Chi_Minh",
-        dateStyle: "full",
-        timeStyle: "short",
+export const sendDeadlineReminderEmail = async ({ to, userName, taskTitle, deadline }) => {
+    const deadlineStr = new Date(deadline).toLocaleString('vi-VN', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        dateStyle: 'full',
+        timeStyle: 'short',
     });
 
     await transporter.sendMail({
@@ -35,7 +36,4 @@ export const sendDeadlineReminderEmail = async ({ to, userName, taskTitle, deadl
             </div>
         `,
     });
-
-    await transporter.verify();
-    console.log("SMTP OK");
 };
