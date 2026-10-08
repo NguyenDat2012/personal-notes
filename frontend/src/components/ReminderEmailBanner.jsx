@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Mail, X } from "lucide-react";
-import { toast } from "sonner";
 import GoogleButton from "./GoogleButton";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 /**
  * Hiện khi user CHƯA có email (chưa từng liên kết Google) — mời họ liên kết
@@ -12,20 +11,15 @@ import { useAuth } from "@/context/AuthContext";
  * Ẩn hẳn nếu user đã có email (user.email tồn tại), hoặc khi tự đóng banner.
  */
 export const ReminderEmailBanner = ({ onLinked }) => {
-    const { user, continueWithGoogle } = useAuth();
+    const { user, googleAuth } = useAuthStore();
     const [dismissed, setDismissed] = useState(false);
 
     if (!user || user.email || dismissed) return null;
 
     const handleGoogleCredential = async (credential) => {
-        try {
-            await continueWithGoogle(credential);
-            toast.success("Đã liên kết Google! Từ giờ bạn sẽ nhận email nhắc nhở deadline.");
-            onLinked?.();
-        } catch (error) {
-            const message = error?.response?.data?.message || "Liên kết Google thất bại";
-            toast.error(message);
-        }
+        //đã đăng nhập nên /auth/google chạy ở chế độ "liên kết Google" (toast do store hiển thị)
+        const ok = await googleAuth(credential);
+        if (ok) onLinked?.();
     };
 
     return (

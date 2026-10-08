@@ -16,7 +16,7 @@ export const sendDeadlineReminders = async (req, res) => {
             status: 'active',
             reminderSent: false,
             deadline: { $gte: now, $lte: in24h },
-        }).populate('user', 'name email');
+        }).populate('user', 'displayName email');
 
         let sentCount = 0;
         for (const task of tasksNeedingReminder) {
@@ -24,7 +24,7 @@ export const sendDeadlineReminders = async (req, res) => {
             try {
                 await sendDeadlineReminderEmail({
                     to: task.user.email,
-                    userName: task.user.name,
+                    userName: task.user.displayName,
                     taskTitle: decrypt(task.title),
                     deadline: task.deadline,
                 });

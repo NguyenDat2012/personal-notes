@@ -1,49 +1,94 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-//Middleware kiểm tra người dùng đã đăng nhập chưa (dựa vào Bearer token)
-export const protect = async (req, res, next) => {
+//authorization - xác minh user là ai
+export const protectedRoute = (req, res,next)=>{
     try {
-        let token;
-        const authHeader = req.headers.authorization;
+        //lấy token từ header
+        const authHeader = req.headers["authorization"];
+        const token = authHeader && authHeader.split(" ")[1];
 
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.split(' ')[1];
+        if(!token){
+            return res.status(401).json({
+                message: "Không tìm thấy access token"
+            });
         }
 
-        if (!token) {
-            return res.status(401).json({ message: 'Chưa đăng nhập, vui lòng đăng nhập lại' });
-        }
+        //xác nhận token hợp lệ
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decodedUser)=>{
+            if(err){
+                console.error(err);
+                return res.status(403).json({
+                    message: 'Access token hết hạn hoặc không đúng'
+                });
+            }
+            try {
+                //tìm user
+                const user = await User.findById(decodedUser.userId).select('-hashedPassword');
+                if(!user){
+                    return res.status(404).json({
+                        message: 'Người dùng không tồn tại.'
+                    });
+                }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.id).select('-password');
-
-        if (!user) {
-            return res.status(401).json({ message: 'Người dùng không tồn tại' });
-        }
-
-        req.user = user; //gắn user vào request để controller phía sau dùng
-        next();
+                //trả user về trong req
+                req.user = user;
+                next();
+            } catch (error) {
+                console.error("Lỗi khi tìm user trong authMiddleware", error);
+                return res.status(500).json({
+                    message: "Lỗi hệ thống"
+                });
+            }
+        })
     } catch (error) {
-        console.error('Lỗi xác thực:', error);
-        return res.status(401).json({ message: 'Token không hợp lệ hoặc đã hết hạn' });
+        console.error("Lỗi khi xác minh jwt trong authMiddleware", error);
+        return res.status(500).json({
+            message: "Lỗi hệ thống"
+        });
     }
-};
+}
 
-//Middleware "mềm": nếu có token hợp lệ thì gắn req.user, không có/token sai thì BỎ QUA
-//(không trả lỗi) — dùng cho các endpoint có thể gọi cả khi đã đăng nhập lẫn chưa đăng nhập,
-//ví dụ /api/auth/google (vừa dùng để đăng nhập, vừa dùng để liên kết tài khoản Google).
-export const optionalAuth = async (req, res, next) => {
+//Middleware "mềm" cho /api/auth/google (vừa để đăng nhập, vừa để liên kết Google):
+// - không có token -> đi tiếp như khách (req.user rỗng)
+// - CÓ token nhưng sai/hết hạn -> trả 403 giống protectedRoute để FE tự refresh rồi gọi lại,
+//   KHÔNG coi như khách (nếu không, người đang liên kết Google sẽ bị rẽ sang nhánh tạo/đăng nhập tài khoản)
+export const optionalAuth = (req, res, next)=>{
     try {
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            const token = authHeader.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const user = await User.findById(decoded.id).select('-password');
-            if (user) req.user = user;
+        const authHeader = req.headers["authorization"];
+        const token = authHeader && authHeader.split(" ")[1];
+
+        if(!token){
+            return next();
         }
+
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decodedUser)=>{
+            if(err){
+                return res.status(403).json({
+                    message: 'Access token hết hạn hoặc không đúng'
+                });
+            }
+            try {
+                const user = await User.findById(decodedUser.userId).select('-hashedPassword');
+                if(!user){
+                    return res.status(404).json({
+                        message: 'Người dùng không tồn tại.'
+                    });
+                }
+
+                req.user = user;
+                next();
+            } catch (error) {
+                console.error("Lỗi khi tìm user trong optionalAuth", error);
+                return res.status(500).json({
+                    message: "Lỗi hệ thống"
+                });
+            }
+        })
     } catch (error) {
-        // Token sai/hết hạn -> coi như chưa đăng nhập, không chặn request
+        console.error("Lỗi khi xác minh jwt trong optionalAuth", error);
+        return res.status(500).json({
+            message: "Lỗi hệ thống"
+        });
     }
-    next();
-};
+}

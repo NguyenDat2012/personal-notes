@@ -1,27 +1,18 @@
 import React from "react";
-import { LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/stores/useAuthStore";
+import Logout from "@/components/auth/Logout";
 
 export const Header = () =>{
-    const { user, logout } = useAuth();
+    const { user } = useAuthStore();
 
     return <div className="relative space-y-3 text-center">
         {user && (
             <>
                 <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3.5 py-1.5 text-sm font-semibold text-primary shadow-sm ring-1 ring-primary/15">
                     <span>👋</span>
-                    <span>Xin chào, {user.name}</span>
+                    <span>Xin chào, {user.displayName}</span>
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    onClick={logout}
-                    title="Đăng xuất"
-                >
-                    <LogOut className="size-4"/>
-                </Button>
+                <Logout />
             </>
         )}
         <div className="space-y-2">

@@ -1,12 +1,23 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+
+declare global {
+    interface Window {
+        google?: any; // Google Identity Services (script nhúng ở index.html)
+    }
+}
+
+interface GoogleButtonProps {
+    onCredential: (credential: string) => void;
+    text?: "signin_with" | "signup_with" | "continue_with";
+}
 
 /**
  * Nút "Đăng nhập bằng Google" dùng Google Identity Services (script đã nhúng ở index.html).
- * Dùng chung cho: trang Login, trang Register, và banner "liên kết Google" ở HomePage
- * — vì bản chất gọi cùng 1 endpoint /api/auth/google, chỉ khác ở việc có Bearer token sẵn hay không.
+ * Dùng chung cho: trang đăng nhập, trang đăng ký, và banner "liên kết Google" ở HomePage
+ * — vì bản chất gọi cùng 1 endpoint /api/auth/google, chỉ khác ở việc có access token sẵn hay không.
  */
-const GoogleButton = ({ onCredential, text = "signin_with" }) => {
-    const buttonRef = useRef(null);
+const GoogleButton = ({ onCredential, text = "signin_with" }: GoogleButtonProps) => {
+    const buttonRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -20,7 +31,7 @@ const GoogleButton = ({ onCredential, text = "signin_with" }) => {
             }
             window.google.accounts.id.initialize({
                 client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-                callback: (response) => onCredential(response.credential),
+                callback: (response: { credential: string }) => onCredential(response.credential),
             });
             window.google.accounts.id.renderButton(buttonRef.current, {
                 theme: "outline",
